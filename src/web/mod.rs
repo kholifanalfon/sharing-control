@@ -174,7 +174,11 @@ fn launch_native_desktop_window(url: &str) {
         for b in mac_browsers {
             if std::path::Path::new(b).exists() {
                 if std::process::Command::new(b)
-                    .args([&app_arg, "--window-size=680,620"])
+                    .args([
+                        &app_arg,
+                        "--window-size=680,620",
+                        "--user-data-dir=/tmp/synergy_next_gui",
+                    ])
                     .spawn()
                     .is_ok()
                 {
