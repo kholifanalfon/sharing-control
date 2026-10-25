@@ -75,24 +75,25 @@ Driver Linux dibuat menggunakan pure Rust `x11rb`, sehingga **tidak membutuhkan 
 
 ### 🍏 2. Cara Build di macOS (Apple Silicon M1/M2/M3/M4 & Intel)
 
-Driver macOS menggunakan native framework Apple `CoreGraphics` untuk mengontrol kursor dan injeksi keyboard secara presisi pada layar Retina.
+> **Catatan Penting Cross-Compile:**
+> Perintah `cargo build` untuk macOS harus dijalankan **langsung di mesin macOS (MacBook)** atau melalui **GitHub Actions**, karena proses *linking* biner macOS membutuhkan Apple MacOSX SDK (`xcrun` & `CoreGraphics.framework`) yang hanya tersedia secara native di sistem operasi macOS.
 
-#### Langkah-langkah:
+#### Langkah-langkah (Jalankan di Mac / Terminal MacBook):
 1. Pastikan **Xcode Command Line Tools** sudah terpasang:
    ```bash
    xcode-select --install
    ```
 
-2. Kompilasi untuk arsitektur Mac Anda saat ini:
+2. Clone/buka folder proyek di Mac dan kompilasi rilis:
    ```bash
    cd /path/to/synergy
    cargo build --release
    ```
-   File binary biner rilis akan berada di: `target/release/synergy-next`.
+   File biner rilis akan langsung berada di: `target/release/synergy-next`.
 
 3. *(Opsional)* **Membuat Universal Binary (Mendukung Apple Silicon + Intel sekaligus)**:
    ```bash
-   # Tambahkan target arsitektur
+   # Tambahkan target arsitektur di Mac
    rustup target add aarch64-apple-darwin
    rustup target add x86_64-apple-darwin
 
@@ -100,7 +101,7 @@ Driver macOS menggunakan native framework Apple `CoreGraphics` untuk mengontrol 
    cargo build --release --target aarch64-apple-darwin
    cargo build --release --target x86_64-apple-darwin
 
-   # Gabungkan menjadi Universal Binary menggunakan lipo
+   # Gabungkan menjadi Universal Binary menggunakan lipo bawaan macOS
    mkdir -p dist
    lipo -create -output dist/synergy-next-macos-universal \
      target/aarch64-apple-darwin/release/synergy-next \
@@ -109,7 +110,7 @@ Driver macOS menggunakan native framework Apple `CoreGraphics` untuk mengontrol 
 
 4. **Izin Aksesibilitas (Penting di macOS)**:
    Agar macOS mengizinkan aplikasi menerima atau mengendalikan mouse/keyboard secara global, buka:
-   👉 **System Settings** > **Privacy & Security** > **Accessibility** > Tambahkan aplikasi atau Terminal tempat Anda menjalankan biner.
+   👉 **System Settings** > **Privacy & Security** > **Accessibility** > Centang aplikasi atau Terminal tempat Anda menjalankan biner.
 
 ---
 
@@ -117,7 +118,7 @@ Driver macOS menggunakan native framework Apple `CoreGraphics` untuk mengontrol 
 
 Driver Windows menggunakan Win32 `SendInput` dengan dukungan DPI Awareness V2 untuk pergerakan kursor yang mulus di multi-monitor dengan scaling resolusi berbeda.
 
-#### Langkah-langkah:
+#### Langkah-langkah (Jalankan di PC Windows):
 1. Unduh dan jalankan installer Rust dari [https://win.rustup.rs](https://win.rustup.rs) (pilih opsi default dengan MSVC / Visual Studio C++ Build Tools).
 2. Buka **Command Prompt (cmd)** atau **PowerShell** dan arahkan ke folder proyek:
    ```cmd
@@ -132,16 +133,17 @@ Driver Windows menggunakan Win32 `SendInput` dengan dukungan DPI Awareness V2 un
 
 ---
 
-### 🌐 4. Kompilasi Otomatis via GitHub Actions (CI/CD)
+### 🌐 4. Kompilasi Otomatis Semua OS via GitHub Actions (CI/CD)
 
-Jika Anda tidak ingin mengompilasi manual di setiap sistem operasi, proyek ini telah dilengkapi dengan workflow CI/CD di [`.github/workflows/release.yml`](.github/workflows/release.yml).
+Jika Anda ingin mendapatkan biner untuk **macOS**, **Windows**, dan **Linux** sekaligus tanpa harus berpindah-pindah komputer:
+Proyek ini telah dilengkapi dengan workflow CI/CD di [`.github/workflows/release.yml`](.github/workflows/release.yml).
 
-Setiap kali Anda membuat tag rilis Git:
+Cukup buat tag rilis Git dan push ke repository:
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
-GitHub Actions akan otomatis mengompilasi file executable secara native di runner Linux, macOS, dan Windows, serta menghasilkan file unduhan siap pakai (*Release Assets*):
+GitHub Actions akan secara otomatis menjalankan 3 runner native (Ubuntu, macOS, dan Windows) dengan SDK lengkap dan menghasilkan file siap unduh di halaman GitHub Releases:
 - 🐧 `synergy-next-linux-x86_64.tar.gz`
 - 🍏 `synergy-next-macos-arm64.tar.gz` (Apple Silicon M1/M2/M3/M4)
 - 🍏 `synergy-next-macos-intel.tar.gz` (MacBook Intel)

@@ -5,7 +5,11 @@ use std::process::Command;
 #[cfg(target_os = "macos")]
 use core_graphics::display::CGMainDisplayID;
 #[cfg(target_os = "macos")]
-use core_graphics::event::{CGEvent, CGEventTapLocation, CGEventType, CGMouseButton, ScrollEventUnit};
+use core_graphics::event::{
+    CGEvent, CGEventTapLocation, CGEventType, CGMouseButton, ScrollEventUnit,
+};
+#[cfg(target_os = "macos")]
+use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 #[cfg(target_os = "macos")]
 use core_graphics::geometry::CGPoint;
 #[cfg(target_os = "macos")]
@@ -19,6 +23,10 @@ impl MacOSScreen {
     pub fn new() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         Ok(Self)
     }
+
+    fn create_event_source() -> Result<CGEventSource, ()> {
+        CGEventSource::new(CGEventSourceStateID::CombinedSessionState)
+    }
 }
 
 #[cfg(target_os = "macos")]
@@ -30,11 +38,11 @@ impl PlatformScreen for MacOSScreen {
     }
 
     fn get_cursor_pos(&self) -> (u16, u16) {
-        if let Ok(event) = CGEvent::new(core_graphics::event_source::CGEventSource::new(
-            core_graphics::event_source::CGEventSourceStateID::CombinedSessionState,
-        )) {
-            let loc = event.location();
-            return (loc.x as u16, loc.y as u16);
+        if let Ok(source) = Self::create_event_source() {
+            if let Ok(event) = CGEvent::new(source) {
+                let loc = event.location();
+                return (loc.x as u16, loc.y as u16);
+            }
         }
         (0, 0)
     }
@@ -48,13 +56,15 @@ impl PlatformScreen for MacOSScreen {
 
     fn inject_mouse_move(&self, x: u16, y: u16) {
         let pt = CGPoint::new(x as f64, y as f64);
-        if let Ok(event) = CGEvent::new_mouse_event(
-            None,
-            CGEventType::MouseMoved,
-            pt,
-            CGMouseButton::Left,
-        ) {
-            event.post(CGEventTapLocation::HID);
+        if let Ok(source) = Self::create_event_source() {
+            if let Ok(event) = CGEvent::new_mouse_event(
+                source,
+                CGEventType::MouseMoved,
+                pt,
+                CGMouseButton::Left,
+            ) {
+                event.post(CGEventTapLocation::HID);
+            }
         }
     }
 
@@ -74,8 +84,10 @@ impl PlatformScreen for MacOSScreen {
             3 => (CGEventType::RightMouseDown, CGMouseButton::Right),
             _ => (CGEventType::OtherMouseDown, CGMouseButton::Center),
         };
-        if let Ok(event) = CGEvent::new_mouse_event(None, ev_type, pt, btn) {
-            event.post(CGEventTapLocation::HID);
+        if let Ok(source) = Self::create_event_source() {
+            if let Ok(event) = CGEvent::new_mouse_event(source, ev_type, pt, btn) {
+                event.post(CGEventTapLocation::HID);
+            }
         }
     }
 
@@ -87,33 +99,41 @@ impl PlatformScreen for MacOSScreen {
             3 => (CGEventType::RightMouseUp, CGMouseButton::Right),
             _ => (CGEventType::OtherMouseUp, CGMouseButton::Center),
         };
-        if let Ok(event) = CGEvent::new_mouse_event(None, ev_type, pt, btn) {
-            event.post(CGEventTapLocation::HID);
+        if let Ok(source) = Self::create_event_source() {
+            if let Ok(event) = CGEvent::new_mouse_event(source, ev_type, pt, btn) {
+                event.post(CGEventTapLocation::HID);
+            }
         }
     }
 
     fn inject_mouse_wheel(&self, x_delta: i16, y_delta: i16) {
-        if let Ok(event) = CGEvent::new_scroll_event(
-            None,
-            ScrollEventUnit::Line,
-            2,
-            y_delta as i32,
-            x_delta as i32,
-            0,
-        ) {
-            event.post(CGEventTapLocation::HID);
+        if let Ok(source) = Self::create_event_source() {
+            if let Ok(event) = CGEvent::new_scroll_event(
+                source,
+                ScrollEventUnit::LINE,
+                2,
+                y_delta as i32,
+                x_delta as i32,
+                0,
+            ) {
+                event.post(CGEventTapLocation::HID);
+            }
         }
     }
 
     fn inject_key_down(&self, _key: u16, _mask: u16, code: u16) {
-        if let Ok(event) = CGEvent::new_keyboard_event(None, code, true) {
-            event.post(CGEventTapLocation::HID);
+        if let Ok(source) = Self::create_event_source() {
+            if let Ok(event) = CGEvent::new_keyboard_event(source, code, true) {
+                event.post(CGEventTapLocation::HID);
+            }
         }
     }
 
     fn inject_key_up(&self, _key: u16, _mask: u16, code: u16) {
-        if let Ok(event) = CGEvent::new_keyboard_event(None, code, false) {
-            event.post(CGEventTapLocation::HID);
+        if let Ok(source) = Self::create_event_source() {
+            if let Ok(event) = CGEvent::new_keyboard_event(source, code, false) {
+                event.post(CGEventTapLocation::HID);
+            }
         }
     }
 
@@ -132,7 +152,7 @@ impl PlatformScreen for MacOSScreen {
             .stdin(std::process::Stdio::piped())
             .spawn()
         {
-            if Some(mut stdin) = child.stdin.take() {
+            if let Some(mut stdin) = child.stdin.take() {
                 let _ = stdin.write_all(text.as_bytes());
             }
             let _ = child.wait();
