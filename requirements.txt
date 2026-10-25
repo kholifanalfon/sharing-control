@@ -1,0 +1,4 @@
+# Synergy Next requires Python 3.8+
+# Core networking, protocol parsing, and platform bindings (ctypes) use Python standard library.
+# Optional helper packages:
+# pynput>=1.7.6

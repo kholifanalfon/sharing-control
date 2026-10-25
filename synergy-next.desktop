@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Barrier / Synergy Next
+Comment=Keyboard and mouse sharing in Rust
+Exec=/home/kholifan/html/synergy/dist/synergy-next-linux-x86_64
+Icon=barrier
+Terminal=false
+Type=Application
+Categories=Utility;Network;
+StartupNotify=true

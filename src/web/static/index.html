@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barrier</title>
+  <link rel="stylesheet" href="barrier.css">
+</head>
+<body>
+  <!-- Classic Menu Bar -->
+  <div class="menubar">
+    <div class="menu-item dropdown">
+      <span>Barrier</span>
+      <div class="dropdown-menu">
+        <a href="#" onclick="showSettings()">Change Settings...</a>
+        <div class="divider"></div>
+        <a href="#" onclick="window.close()">Quit</a>
+      </div>
+    </div>
+    <div class="menu-item dropdown">
+      <span>Edit</span>
+      <div class="dropdown-menu">
+        <a href="#" onclick="showSettings()">Settings</a>
+      </div>
+    </div>
+    <div class="menu-item dropdown">
+      <span>Window</span>
+      <div class="dropdown-menu">
+        <a href="#" onclick="toggleLogWindow()">Show Log</a>
+      </div>
+    </div>
+    <div class="menu-item dropdown">
+      <span>Help</span>
+      <div class="dropdown-menu">
+        <a href="#" onclick="showAbout()">About Barrier...</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- Server Group Box -->
+    <fieldset class="group-box" id="serverGroupBox">
+      <legend>
+        <label class="radio-label">
+          <input type="radio" name="modeRadio" id="radioServer" value="server" onchange="onModeChange()">
+          <strong>Server (share this computer's mouse and keyboard):</strong>
+        </label>
+      </legend>
+      <div class="group-content">
+        <div class="row info-row">
+          <span>IP addresses:</span>
+          <span class="val-highlight" id="lblIpAddresses">192.168.12.61, 127.0.0.1</span>
+        </div>
+
+        <div class="radio-subgroup">
+          <div class="row align-center">
+            <label class="radio-label">
+              <input type="radio" name="serverConfigType" id="radioConfigInteractive" value="interactive" checked>
+              <span>Configure interactively:</span>
+            </label>
+            <button class="qt-btn" id="btnConfigureServer" onclick="openServerConfigModal()">Configure Server...</button>
+          </div>
+
+          <div class="row align-center" style="margin-top: 6px;">
+            <label class="radio-label">
+              <input type="radio" name="serverConfigType" id="radioConfigExisting" value="file">
+              <span>Use existing configuration:</span>
+            </label>
+            <input type="text" class="qt-input" id="inputConfigFile" value="/home/kholifan/.config/Debauchee/Barrier.conf" style="flex: 1; margin: 0 8px;">
+            <button class="qt-btn" onclick="alert('File barrier.conf dimuat.')">Browse...</button>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Client Group Box -->
+    <fieldset class="group-box" id="clientGroupBox" style="margin-top: 14px;">
+      <legend>
+        <label class="radio-label">
+          <input type="radio" name="modeRadio" id="radioClient" value="client" checked onchange="onModeChange()">
+          <strong>Client (use another computer's mouse and keyboard):</strong>
+        </label>
+      </legend>
+      <div class="group-content">
+        <div class="row align-center">
+          <label style="width: 100px;">Screen name:</label>
+          <input type="text" class="qt-input" id="inputClientScreenName" value="kholifan-alfon" style="width: 220px;" onchange="saveConfigFromUI()">
+        </div>
+
+        <div class="row align-center" style="margin-top: 10px;">
+          <label class="checkbox-label" style="width: 100px;">
+            <input type="checkbox" id="checkAutoConfig">
+            <span>Auto config</span>
+          </label>
+          <label style="margin-left: 20px; margin-right: 8px;">Server IP:</label>
+          <input type="text" class="qt-input" id="inputServerIp" value="192.168.12.61" style="flex: 1;" onchange="saveConfigFromUI()">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Log & Status Section -->
+    <div class="status-section">
+      <div class="status-bar">
+        <span class="status-indicator-dot" id="statusDot"></span>
+        <span class="status-text" id="statusMessage">Barrier is running.</span>
+      </div>
+      <div class="log-window" id="logBox">
+        <div class="log-line info">[2026-10-25T10:20:00] NOTE: starting server</div>
+        <div class="log-line info">[2026-10-25T10:20:01] INFO: screen "kholifan-alfon" is ready</div>
+        <div class="log-line">[2026-10-25T10:20:02] NOTE: accepted client connection</div>
+      </div>
+    </div>
+
+    <!-- Bottom Buttons (Start/Stop, Reload, Apply) -->
+    <div class="bottom-actions">
+      <button class="qt-btn" id="btnReload" onclick="reloadService()">Reload</button>
+      <div class="right-buttons">
+        <button class="qt-btn" id="btnApply" onclick="applyConfig()">Apply</button>
+        <button class="qt-btn qt-btn-primary" id="btnToggleService" onclick="toggleService()">Start</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1:1 Barrier "Server Configuration" Modal Dialog with 5x3 Interactive Grid -->
+  <div class="modal-overlay" id="serverConfigModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <span>Server Configuration</span>
+        <button class="modal-close" onclick="closeServerConfigModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="tabs-header">
+          <div class="tab-item active">Screens and links</div>
+          <div class="tab-item" onclick="alert('Hotkeys setting ready.')">Hotkeys</div>
+          <div class="tab-item" onclick="alert('Advanced settings ready.')">Advanced server settings</div>
+        </div>
+
+        <div class="grid-studio-container">
+          <!-- Top Screen Drag Shelf -->
+          <div class="shelf-row">
+            <div class="screen-source-box" draggable="true" ondragstart="onDragNewScreen(event)">
+              <div class="screen-mini-icon">🖥️</div>
+              <span>Drag screen</span>
+            </div>
+            <div class="trash-bin-box" ondragover="allowDrop(event)" ondrop="onDropTrash(event)">
+              <div class="trash-icon">🗑️</div>
+              <span>Drag here to delete</span>
+            </div>
+          </div>
+
+          <!-- 5x3 Barrier Grid -->
+          <div class="grid-5x3" id="screenGrid5x3">
+            <!-- Dynamically populated in barrier.js -->
+          </div>
+
+          <div class="grid-help-text">
+            Double click a screen to edit its settings. Drag a screen to re-position it or drop on the trash can to remove it.
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="qt-btn qt-btn-primary" onclick="saveServerConfigModal()">OK</button>
+        <button class="qt-btn" onclick="closeServerConfigModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="barrier.js"></script>
+</body>
+</html>

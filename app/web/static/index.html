@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synergy Next - Cross-Platform KM Switch</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">⚡</div>
+        <div class="brand-text">
+          <h1>Synergy Next</h1>
+          <p class="subtitle">Cross-Platform Keyboard & Mouse Sharing (macOS • Linux • Windows)</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="status-badge" id="statusBadge">
+          <span class="status-dot"></span>
+          <span class="status-text" id="statusText">Checking...</span>
+        </div>
+        <button id="btnToggleService" class="btn btn-primary">Start Service</button>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <!-- Mode Selection Card -->
+      <section class="card mode-card">
+        <h2>Operation Mode</h2>
+        <div class="mode-toggles">
+          <label class="mode-option" id="labelServerMode">
+            <input type="radio" name="operationMode" value="server" id="radioServer" checked>
+            <div class="mode-content">
+              <div class="mode-icon">🖥️</div>
+              <strong>Server Mode</strong>
+              <span>Share this computer's physical mouse and keyboard with other machines.</span>
+            </div>
+          </label>
+          <label class="mode-option" id="labelClientMode">
+            <input type="radio" name="operationMode" value="client" id="radioClient">
+            <div class="mode-content">
+              <div class="mode-icon">💻</div>
+              <strong>Client Mode</strong>
+              <span>Receive remote mouse and keyboard inputs from a Synergy/Barrier server.</span>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Settings & Configuration -->
+      <section class="card settings-card">
+        <h2>Configuration</h2>
+        <form id="configForm" class="settings-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputScreenName">Local Screen Name</label>
+              <input type="text" id="inputScreenName" placeholder="e.g. kholifan-alfon">
+              <small>Must match the name configured on neighbor screens</small>
+            </div>
+            <div class="form-group">
+              <label for="inputPort">Protocol Port</label>
+              <input type="number" id="inputPort" value="24800">
+              <small>Default Barrier/Synergy port: 24800</small>
+            </div>
+          </div>
+
+          <div class="form-row" id="clientSettingsRow" style="display: none;">
+            <div class="form-group full-width">
+              <label for="inputServerHost">Target Server IP / Hostname</label>
+              <input type="text" id="inputServerHost" placeholder="e.g. 192.168.12.61">
+              <small>IP address of the computer acting as Server</small>
+            </div>
+          </div>
+
+          <div class="form-checkboxes">
+            <label class="checkbox-label">
+              <input type="checkbox" id="checkTls">
+              <span>Enable TLS Encryption</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="checkClipboard" checked>
+              <span>Synchronize System Clipboard</span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-secondary">Save Configuration</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Visual Screen Layout (Server Mode) -->
+      <section class="card topology-card" id="topologyCard">
+        <h2>Screen Topology & Layout</h2>
+        <p class="section-desc">Arrange screen positions relative to this host to switch cursors seamlessly by reaching screen edges.</p>
+        <div class="screen-canvas-wrapper">
+          <div class="screen-box primary" id="boxHostScreen">
+            <div class="screen-header">Host (This PC)</div>
+            <div class="screen-title" id="hostScreenLabel">Local Screen</div>
+          </div>
+          <div class="screen-arrow">⇄</div>
+          <div class="screen-box secondary" id="boxNeighborScreen">
+            <div class="screen-header">Neighbor Client</div>
+            <input type="text" id="inputNeighborName" class="neighbor-input" placeholder="e.g. Kholifans-MacBook">
+          </div>
+        </div>
+      </section>
+
+      <!-- Live Logs Console -->
+      <section class="card logs-card">
+        <div class="card-header-flex">
+          <h2>Live Connection Logs</h2>
+          <button class="btn btn-sm" id="btnClearLogs">Clear</button>
+        </div>
+        <div class="console-box" id="consoleBox">
+          <div class="log-line info">[System] Synergy Next initialized. Ready.</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <div>Synergy Next • Fully compatible with Barrier and Synergy 1.6 Protocol</div>
+      <div>Compatible: <strong>macOS</strong> (Apple Silicon & Intel), <strong>Linux</strong> (X11 & Wayland), <strong>Windows</strong> (10/11)</div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
